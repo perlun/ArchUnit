@@ -65,4 +65,22 @@ public class JavaTypeTest {
 
         assertThatType(type.toErasure()).matches(HashMap.class);
     }
+
+    @Test
+    public void erased_type_parameter_of_concrete_array_type_is_array_type() {
+        @SuppressWarnings("unused")
+        class ClassWithBoundTypeParameterWithSingleGenericArrayBound<T extends List<Object[]>, U extends List<String[][]>, V extends List<List<?>[][][]>> {
+        }
+
+        List<JavaTypeVariable> typeParameters = new ClassFileImporter().importClass(ClassWithBoundTypeParameterWithSingleGenericArrayBound.class).getTypeParameters();
+
+        assertThatType(getTypeArgumentOfFirstBound(typeParameters.get(0)).toErasure()).matches(Object[].class);
+        assertThatType(getTypeArgumentOfFirstBound(typeParameters.get(1)).toErasure()).matches(String[][].class);
+        assertThatType(getTypeArgumentOfFirstBound(typeParameters.get(2)).toErasure()).matches(List[][][].class);
+    }
+
+    private static JavaType getTypeArgumentOfFirstBound(JavaTypeVariable typeParameter) {
+        JavaParameterizedType firstBound = (JavaParameterizedType) typeParameter.getBounds().get(0);
+        return firstBound.getActualTypeArguments().get(0);
+    }
 }
