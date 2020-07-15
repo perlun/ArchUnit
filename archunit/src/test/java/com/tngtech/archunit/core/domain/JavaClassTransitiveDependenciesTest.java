@@ -11,7 +11,7 @@ public class JavaClassTransitiveDependenciesTest {
     static class AcyclicGraph {
         static class A {
             B b;
-            C c;
+            C[] c;
         }
 
         static class B {
@@ -34,18 +34,19 @@ public class JavaClassTransitiveDependenciesTest {
         Class<?> c = AcyclicGraph.C.class;
         Class<?> d = AcyclicGraph.D.class;
         JavaClasses classes = new ClassFileImporter().importClasses(a, b, c, d);
+        Class<?> cArray = AcyclicGraph.C[].class;
 
         assertThatDependencies(classes.get(a).getTransitiveDependenciesFromSelfWithinPackage(PACKAGE))
                 .contain(a, Object.class)
                 .contain(a, b)
                     .contain(b, Object.class)
                     .contain(b, Integer.class)
-                .contain(a, c)
+                .contain(a, cArray)
                     .contain(c, Object.class)
                     .contain(c, d)
                         .contain(d, Object.class)
                         .contain(d, String.class)
-                .containOnlyTargetClasses(b, c, d, Object.class, Integer.class, String.class);
+                .containOnlyTargetClasses(b, cArray, d, Object.class, Integer.class, String.class);
 
         assertThatDependencies(classes.get(b).getTransitiveDependenciesFromSelfWithinPackage(PACKAGE))
                 .contain(b, Object.class)
@@ -64,7 +65,7 @@ public class JavaClassTransitiveDependenciesTest {
     static class CyclicGraph {
         static class A {
             B b;
-            C c;
+            C[] c;
             D d;
         }
 
@@ -94,13 +95,14 @@ public class JavaClassTransitiveDependenciesTest {
         Class<?> d = CyclicGraph.D.class;
         Class<?> e = CyclicGraph.E.class;
         JavaClasses classes = new ClassFileImporter().importClasses(a, b, c, d, e);
+        Class<?> cArray = CyclicGraph.C[].class;
 
         assertThatDependencies(classes.get(a).getTransitiveDependenciesFromSelfWithinPackage(PACKAGE))
                 .contain(a, Object.class)
                 .contain(a, b)
                     .contain(b, Object.class)
                     .contain(b, Integer.class)
-                .contain(a, c)
+                .contain(a, cArray)
                     .contain(c, Object.class)
                     .contain(c, a)
                 .contain(a, d)
@@ -109,7 +111,7 @@ public class JavaClassTransitiveDependenciesTest {
                         .contain(e, Object.class)
                         .contain(e, a)
                         .contain(e, String.class)
-                .containOnlyTargetClasses(a, b, c, d, e, Object.class, Integer.class, String.class);
+                .containOnlyTargetClasses(a, b, cArray, d, e, Object.class, Integer.class, String.class);
 
         assertThatDependencies(classes.get(c).getTransitiveDependenciesFromSelfWithinPackage(PACKAGE))
                 .contain(c, Object.class)
@@ -118,14 +120,14 @@ public class JavaClassTransitiveDependenciesTest {
                     .contain(a, b)
                         .contain(b, Object.class)
                         .contain(b, Integer.class)
-                    .contain(a, c)
+                    .contain(a, cArray)
                     .contain(a, d)
                         .contain(d, Object.class)
                         .contain(d, e)
                             .contain(e, Object.class)
                             .contain(e, a)
                             .contain(e, String.class)
-                .containOnlyTargetClasses(a, b, c, d, e, Object.class, Integer.class, String.class);
+                .containOnlyTargetClasses(a, b, cArray, d, e, Object.class, Integer.class, String.class);
 
         assertThatDependencies(classes.get(d).getTransitiveDependenciesFromSelfWithinPackage(PACKAGE))
                 .contain(d, Object.class)
@@ -136,11 +138,11 @@ public class JavaClassTransitiveDependenciesTest {
                         .contain(a, b)
                             .contain(b, Object.class)
                             .contain(b, Integer.class)
-                        .contain(a, c)
+                        .contain(a, cArray)
                             .contain(c, Object.class)
                             .contain(c, a)
                         .contain(a, d)
                     .contain(e, String.class)
-                .containOnlyTargetClasses(a, b, c, d, e, Object.class, Integer.class, String.class);
+                .containOnlyTargetClasses(a, b, cArray, d, e, Object.class, Integer.class, String.class);
     }
 }
