@@ -34,6 +34,7 @@ import com.tngtech.archunit.base.ChainableFunction;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.base.PackageMatcher;
+import com.tngtech.archunit.base.Predicate;
 import com.tngtech.archunit.core.MayResolveTypesViaReflection;
 import com.tngtech.archunit.core.ResolvesTypesViaReflection;
 import com.tngtech.archunit.core.domain.DomainObjectCreationContext.AccessContext;
@@ -958,6 +959,24 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations<JavaClass>
     @PublicAPI(usage = ACCESS)
     public Set<Dependency> getDirectDependenciesFromSelf() {
         return javaClassDependencies.getDirectDependenciesFromClass();
+    }
+
+    /**
+     * Returns the transitive closure of all dependencies originating from this class, i.e. its direct dependencies
+     * and the dependencies from all target classes that are within the given package (including sub-packages).
+     * Note that all target classes in this package must be imported.
+     * @param packageNamePrefix start of the package name of classes whose transitive dependencies should be considered
+     * @return all transitive dependencies (including direct dependencies) from this class
+     * @see #getDirectDependenciesFromSelf()
+     */
+    @PublicAPI(usage = ACCESS)
+    public Set<Dependency> getTransitiveDependenciesFromSelfWithinPackage(final String packageNamePrefix) {
+        return JavaClassTransitiveDependencies.findTransitiveDependenciesFrom(this, new Predicate<JavaClass>() {
+            @Override
+            public boolean apply(JavaClass javaClass) {
+                return javaClass.getPackageName().startsWith(packageNamePrefix);
+            }
+        });
     }
 
     /**

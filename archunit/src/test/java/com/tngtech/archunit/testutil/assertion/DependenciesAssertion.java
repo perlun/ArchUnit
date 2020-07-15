@@ -9,6 +9,7 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.tngtech.archunit.core.domain.Dependency;
 import org.assertj.core.api.AbstractIterableAssert;
+import org.assertj.core.api.iterable.Extractor;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -71,6 +72,19 @@ public class DependenciesAssertion extends AbstractIterableAssert<
         for (Dependency dependency : actual) {
             toAssert(dependency, dependency.getDescription()).matches(expectedOrigin, expectedTarget);
         }
+        return this;
+    }
+
+    public DependenciesAssertion containOnlyTargetClasses(Class<?>... targetClasses) {
+        assertThat(actual)
+                .extracting(new Extractor<Dependency, Class<?>>() {
+                    @Override
+                    public Class<?> extract(Dependency dependency) {
+                        return dependency.getTargetClass().reflect();
+                    }
+                })
+                .as("targetClasses")
+                .containsOnly(targetClasses);
         return this;
     }
 
