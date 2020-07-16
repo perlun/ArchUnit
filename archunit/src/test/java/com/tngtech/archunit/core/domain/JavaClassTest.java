@@ -625,6 +625,28 @@ public class JavaClassTest {
     }
 
     @Test
+    public void stubs_have_empty_dependencies() {
+        class Element {
+        }
+        class DependsOnArray {
+            Element[] array;
+        }
+        JavaClass directlyImportedClass = new ClassFileImporter().importClasses(DependsOnArray.class).get(DependsOnArray.class);
+        JavaClass additionallyImportedClass = directlyImportedClass.getField("array").getRawType();  // Element[]
+        JavaClass stub = additionallyImportedClass.getComponentType();  // Element
+
+        assertThat(stub.getDirectDependenciesFromSelf()).isEmpty();
+        assertThat(stub.getDirectDependenciesToSelf()).isEmpty();
+        assertThat(stub.getFieldsWithTypeOfSelf()).isEmpty();
+        assertThat(stub.getMethodsWithParameterTypeOfSelf()).isEmpty();
+        assertThat(stub.getMethodsWithReturnTypeOfSelf()).isEmpty();
+        assertThat(stub.getMethodThrowsDeclarationsWithTypeOfSelf()).isEmpty();
+        assertThat(stub.getConstructorsWithParameterTypeOfSelf()).isEmpty();
+        assertThat(stub.getConstructorsWithThrowsDeclarationTypeOfSelf()).isEmpty();
+        assertThat(stub.getAnnotationsWithTypeOfSelf()).isEmpty();
+    }
+
+    @Test
     public void function_getSimpleName() {
         assertThat(JavaClass.Functions.GET_SIMPLE_NAME.apply(importClassWithContext(List.class)))
                 .as("result of GET_SIMPLE_NAME(clazz)")

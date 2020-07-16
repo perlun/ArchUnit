@@ -98,7 +98,7 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations<JavaClass>
                     .build();
         }
     });
-    private JavaClassDependencies javaClassDependencies;
+    private JavaClassDependencies javaClassDependencies = new JavaClassDependencies(this);  // just for stubs; will be overwritten for imported classes
 
     JavaClass(JavaClassBuilder builder) {
         source = checkNotNull(builder.getSource());
