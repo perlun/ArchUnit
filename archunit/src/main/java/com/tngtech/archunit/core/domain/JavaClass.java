@@ -84,6 +84,7 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations<JavaClass>
     private Optional<JavaClass> enclosingClass = Optional.absent();
     private Optional<JavaClass> componentType = Optional.absent();
     private Map<String, JavaAnnotation<JavaClass>> annotations = emptyMap();
+    private Set<JavaAnnotation<JavaClass>> visitedAnnotations = new HashSet<>();
     private Supplier<Set<JavaMethod>> allMethods;
     private Supplier<Set<JavaConstructor>> allConstructors;
     private Supplier<Set<JavaField>> allFields;
@@ -515,7 +516,16 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations<JavaClass>
     @Override
     @PublicAPI(usage = ACCESS)
     public boolean isMetaAnnotatedWith(DescribedPredicate<? super JavaAnnotation<?>> predicate) {
-        return CanBeAnnotated.Utils.isMetaAnnotatedWith(annotations.values(), predicate);
+        Set<JavaAnnotation<JavaClass>> foundAnnotations = new HashSet<>();
+        for (JavaAnnotation<JavaClass> annotation : annotations.values()) {
+            if (!visitedAnnotations.contains(annotation)) {
+                visitedAnnotations.add(annotation);
+                foundAnnotations.add(annotation);
+            }
+        }
+        boolean isMetaAnnotated = CanBeAnnotated.Utils.isMetaAnnotatedWith(foundAnnotations, predicate);
+        visitedAnnotations.removeAll(foundAnnotations);
+        return isMetaAnnotated;
     }
 
     /**

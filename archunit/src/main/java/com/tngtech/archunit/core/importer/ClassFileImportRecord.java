@@ -165,6 +165,10 @@ class ClassFileImportRecord {
         return superClassNamesByOwner;
     }
 
+    SetMultimap<String, DomainBuilders.JavaAnnotationBuilder> getAnnotationsByOwnerClass() {
+        return annotationsByOwner;
+    }
+
     SetMultimap<String, String> getInterfaceNamesBySubInterface() {
         return interfaceNamesByOwner;
     }

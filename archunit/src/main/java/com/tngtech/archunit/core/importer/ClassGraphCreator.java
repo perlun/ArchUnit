@@ -49,6 +49,7 @@ import com.tngtech.archunit.core.importer.AccessRecord.FieldAccessRecord;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaConstructorCallBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaFieldAccessBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaMethodCallBuilder;
+import com.tngtech.archunit.core.importer.DomainBuilders.JavaAnnotationBuilder;
 import com.tngtech.archunit.core.importer.resolvers.ClassResolver;
 
 import static com.google.common.collect.Iterables.concat;
@@ -67,6 +68,7 @@ class ClassGraphCreator implements ImportContext {
     private final SetMultimap<JavaCodeUnit, AccessRecord<ConstructorCallTarget>> processedConstructorCallRecords = HashMultimap.create();
     private final Function<JavaClass, Set<String>> superClassStrategy;
     private final Function<JavaClass, Set<String>> interfaceStrategy;
+    private final Function<JavaClass, Set<JavaAnnotationBuilder>> annotationStrategy;
     private final MemberDependenciesByTarget memberDependenciesByTarget = new MemberDependenciesByTarget();
 
     ClassGraphCreator(ClassFileImportRecord importRecord, ClassResolver classResolver) {
@@ -74,6 +76,7 @@ class ClassGraphCreator implements ImportContext {
         classes = new ImportedClasses(importRecord.getClasses(), classResolver);
         superClassStrategy = createSuperClassStrategy();
         interfaceStrategy = createInterfaceStrategy();
+        annotationStrategy = createAnnotationStrategy();
     }
 
     private Function<JavaClass, Set<String>> createSuperClassStrategy() {
@@ -90,6 +93,15 @@ class ClassGraphCreator implements ImportContext {
             @Override
             public Set<String> apply(JavaClass input) {
                 return importRecord.getInterfaceNamesFor(input.getName());
+            }
+        };
+    }
+
+    private Function<JavaClass, Set<JavaAnnotationBuilder>> createAnnotationStrategy() {
+        return new Function<JavaClass, Set<JavaAnnotationBuilder>>() {
+            @Override
+            public Set<JavaAnnotationBuilder> apply(JavaClass input) {
+                return importRecord.getAnnotationsFor(input.getName());
             }
         };
     }
@@ -147,6 +159,7 @@ class ClassGraphCreator implements ImportContext {
     }
 
     private void completeAnnotations() {
+        ensureAnnotationsHierarchy();
         for (JavaClass javaClass : classes.getAll().values()) {
             DomainObjectCreationContext.completeAnnotations(javaClass, this);
             for (JavaMember member : concat(javaClass.getFields(), javaClass.getMethods(), javaClass.getConstructors())) {
@@ -155,6 +168,20 @@ class ClassGraphCreator implements ImportContext {
         }
     }
 
+    private void ensureAnnotationsHierarchy() {
+        for (JavaAnnotationBuilder annotationClassName : ImmutableSet.copyOf(importRecord.getAnnotationsByOwnerClass().values())) {
+            resolveAnnotations(annotationClassName, annotationStrategy);
+        }
+    }
+
+    private void resolveAnnotations(JavaAnnotationBuilder annotationBuilder, Function<JavaClass, Set<JavaAnnotationBuilder>> annotationStrategy) {
+        for (JavaAnnotationBuilder annotation : annotationStrategy.apply(classes.getOrResolve(annotationBuilder.getJavaType().getName()))) {
+            if (classes.getAll().containsKey(annotation.getJavaType().getName())) {
+                break;
+            }
+            resolveAnnotations(annotation, annotationStrategy);
+        }
+    }
     private <T extends AccessRecord<?>, B extends RawAccessRecord> void tryProcess(
             B rawRecord,
             AccessRecord.Factory<B, T> factory,
