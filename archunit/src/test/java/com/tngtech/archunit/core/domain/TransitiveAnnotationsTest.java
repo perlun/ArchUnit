@@ -39,6 +39,18 @@ public class TransitiveAnnotationsTest {
         assertThatParametersOfMetaAnnotationAreImported(metaAnnotationWithParameters);
     }
 
+    @Test
+    public void meta_annotations_of_class_members_are_imported() {
+        JavaClass javaClass = new ClassFileImporter().importClass(ClassWithMetaAnnotatedMember.class);
+        JavaField metaAnnotatedMember = javaClass.getField("metaAnnotatedMember");
+        JavaAnnotation<JavaField> someAnnotation =  metaAnnotatedMember
+                .getAnnotationOfType(SomeAnnotation.class.getName());
+        JavaAnnotation<JavaClass> metaAnnotationWithParameters = someAnnotation.getRawType()
+                .getAnnotationOfType(MetaAnnotationWithParameters.class.getName());
+
+        assertThatParametersOfMetaAnnotationAreImported(metaAnnotationWithParameters);
+    }
+
     private void assertThatParametersOfMetaAnnotationAreImported(final JavaAnnotation<JavaClass> metaAnnotationWithParameters) {
         assertThat(metaAnnotationWithParameters.get("someEnum").isPresent()).isTrue();
         JavaEnumConstant someEnum = (JavaEnumConstant) metaAnnotationWithParameters.get("someEnum").get();

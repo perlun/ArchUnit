@@ -164,6 +164,9 @@ class ClassGraphCreator implements ImportContext {
             DomainObjectCreationContext.completeAnnotations(javaClass, this);
             for (JavaMember member : concat(javaClass.getFields(), javaClass.getMethods(), javaClass.getConstructors())) {
                 memberDependenciesByTarget.registerAnnotations(member.getAnnotations());
+                for (JavaAnnotation<? extends JavaMember> annotation : member.getAnnotations()) {
+                    DomainObjectCreationContext.completeAnnotations(annotation.getRawType(), this);
+                }
             }
         }
     }
