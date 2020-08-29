@@ -3,8 +3,6 @@ package com.tngtech.archunit.core.domain;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import org.junit.Test;
 
-import static com.tngtech.archunit.core.domain.TestUtils.importClasses;
-import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 
 // FIXME: How classes are resolved depending on the configured ClassResolver is part of the import context.
@@ -23,16 +21,6 @@ public class TransitiveAnnotationsTest {
                 .getAnnotationOfType(SomeMetaMetaAnnotation.class.getName());
 
         assertThat(someMetaMetaAnnotation.getRawType()).matches(SomeMetaMetaAnnotation.class);
-    }
-
-    @Test
-    public void meta_annotations_are_correctly_verified() {
-        JavaClasses javaClasses = importClasses(BaseClass.class);
-        classes().should()
-                .beMetaAnnotatedWith(SomeMetaAnnotation.class)
-                .andShould()
-                .beMetaAnnotatedWith(SomeMetaMetaAnnotation.class)
-                .check(javaClasses);
     }
 
     @Test
