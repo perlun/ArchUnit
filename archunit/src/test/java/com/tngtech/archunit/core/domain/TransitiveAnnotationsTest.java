@@ -21,6 +21,8 @@ public class TransitiveAnnotationsTest {
                 .getAnnotationOfType(SomeMetaAnnotation.class.getName());
         JavaAnnotation<JavaClass> someMetaMetaAnnotation = someMetaAnnotation.getRawType()
                 .getAnnotationOfType(SomeMetaMetaAnnotation.class.getName());
+
+        assertThat(someMetaMetaAnnotation.getRawType()).matches(SomeMetaMetaAnnotation.class);
     }
 
     @Test
