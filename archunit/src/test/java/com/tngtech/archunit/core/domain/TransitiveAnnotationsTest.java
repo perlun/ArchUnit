@@ -55,8 +55,8 @@ public class TransitiveAnnotationsTest {
                 .get("parameterAnnotation").get();
 
         assertThat(parameterAnnotation.getRawType()).matches(ParameterAnnotation.class);
-        JavaClass someClass = (JavaClass) parameterAnnotation.get("value").get();
-        assertThat(someClass).matches(SomeClass.class);
+        JavaClass someAnnotationParameterType = (JavaClass) parameterAnnotation.get("value").get();
+        assertThat(someAnnotationParameterType).matches(SomeAnnotationParameterType.class);
     }
 
     private @interface MetaAnnotationWithParameters {
@@ -74,7 +74,7 @@ public class TransitiveAnnotationsTest {
 
     @MetaAnnotationWithParameters(
             someEnum = SomeEnum.CONSTANT,
-            parameterAnnotation = @ParameterAnnotation(SomeClass.class)
+            parameterAnnotation = @ParameterAnnotation(SomeAnnotationParameterType.class)
     )
     @SomeMetaAnnotation
     private @interface SomeAnnotation {
@@ -93,7 +93,7 @@ public class TransitiveAnnotationsTest {
         Class<?> value();
     }
 
-    private static class SomeClass {
+    private static class SomeAnnotationParameterType {
     }
 
     @SuppressWarnings("unused")
