@@ -47,7 +47,7 @@ public class TransitiveAnnotationsTest {
     public void meta_annotations_of_class_members_are_imported() {
         JavaClass javaClass = new ClassFileImporter().importClass(ClassWithMetaAnnotatedMember.class);
         JavaField metaAnnotatedMember = javaClass.getField("metaAnnotatedMember");
-        JavaAnnotation<JavaField> someAnnotation =  metaAnnotatedMember
+        JavaAnnotation<JavaField> someAnnotation = metaAnnotatedMember
                 .getAnnotationOfType(SomeAnnotation.class.getName());
         JavaAnnotation<JavaClass> metaAnnotationWithParameters = someAnnotation.getRawType()
                 .getAnnotationOfType(MetaAnnotationWithParameters.class.getName());
@@ -71,6 +71,7 @@ public class TransitiveAnnotationsTest {
 
     private @interface MetaAnnotationWithParameters {
         SomeEnum someEnum();
+
         ParameterAnnotation parameterAnnotation();
     }
 
@@ -90,22 +91,23 @@ public class TransitiveAnnotationsTest {
     }
 
     @SomeAnnotation
-    private @interface BaseClass{
+    private @interface BaseClass {
     }
 
     private enum SomeEnum {
         CONSTANT,
-        VARIABLE;
+        VARIABLE
     }
 
     private @interface ParameterAnnotation {
         Class<?> value();
     }
 
-    private class SomeClass {
+    private static class SomeClass {
     }
 
-    private class ClassWithMetaAnnotatedMember {
+    @SuppressWarnings("unused")
+    private static class ClassWithMetaAnnotatedMember {
         @SomeAnnotation
         int metaAnnotatedMember;
     }
