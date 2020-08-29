@@ -5,7 +5,7 @@ import org.junit.Test;
 
 import static com.tngtech.archunit.core.domain.TestUtils.importClasses;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
-import static org.assertj.core.api.Assertions.assertThat;
+import static com.tngtech.archunit.testutil.Assertions.assertThat;
 
 // FIXME: How classes are resolved depending on the configured ClassResolver is part of the import context.
 //        Thus this test should actually go into the importer package, not the domain package.
@@ -55,18 +55,18 @@ public class TransitiveAnnotationsTest {
         assertThatParametersOfMetaAnnotationAreImported(metaAnnotationWithParameters);
     }
 
+    @SuppressWarnings("unchecked")
     private void assertThatParametersOfMetaAnnotationAreImported(final JavaAnnotation<JavaClass> metaAnnotationWithParameters) {
-        assertThat(metaAnnotationWithParameters.get("someEnum").isPresent()).isTrue();
         JavaEnumConstant someEnum = (JavaEnumConstant) metaAnnotationWithParameters.get("someEnum").get();
         assertThat(someEnum.name()).isEqualTo(SomeEnum.CONSTANT.toString());
+        assertThat(someEnum.getDeclaringClass()).matches(SomeEnum.class);
 
-        assertThat(metaAnnotationWithParameters.get("parameterAnnotation").isPresent()).isTrue();
         JavaAnnotation<JavaClass> parameterAnnotation = (JavaAnnotation<JavaClass>) metaAnnotationWithParameters
                 .get("parameterAnnotation").get();
 
-        assertThat(parameterAnnotation.get("value").isPresent()).isTrue();
+        assertThat(parameterAnnotation.getRawType()).matches(ParameterAnnotation.class);
         JavaClass someClass = (JavaClass) parameterAnnotation.get("value").get();
-        assertThat(someClass.getName()).isEqualTo(SomeClass.class.getName());
+        assertThat(someClass).matches(SomeClass.class);
     }
 
     private @interface MetaAnnotationWithParameters {
