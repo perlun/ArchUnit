@@ -10,6 +10,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
@@ -22,6 +23,7 @@ import com.tngtech.archunit.core.domain.AccessTarget.FieldAccessTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.MethodCallTarget;
 import com.tngtech.archunit.core.domain.Dependency;
 import com.tngtech.archunit.core.domain.JavaAccess;
+import com.tngtech.archunit.core.domain.JavaAnnotation;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClassList;
 import com.tngtech.archunit.core.domain.JavaCodeUnit;
@@ -47,6 +49,7 @@ import com.tngtech.archunit.testutil.assertion.ConditionEventsAssertion;
 import com.tngtech.archunit.testutil.assertion.DependenciesAssertion;
 import com.tngtech.archunit.testutil.assertion.DependencyAssertion;
 import com.tngtech.archunit.testutil.assertion.DescribedPredicateAssertion;
+import com.tngtech.archunit.testutil.assertion.JavaAnnotationAssertion;
 import com.tngtech.archunit.testutil.assertion.JavaCodeUnitAssertion;
 import com.tngtech.archunit.testutil.assertion.JavaConstructorAssertion;
 import com.tngtech.archunit.testutil.assertion.JavaFieldAssertion;
@@ -64,6 +67,7 @@ import org.assertj.core.api.ObjectAssert;
 import org.assertj.core.api.ObjectAssertFactory;
 import org.objectweb.asm.Type;
 
+import static com.google.common.base.Strings.emptyToNull;
 import static com.tngtech.archunit.core.domain.Formatters.formatMethodSimple;
 import static com.tngtech.archunit.core.domain.JavaClass.namesOf;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
@@ -168,6 +172,10 @@ public class Assertions extends org.assertj.core.api.Assertions {
 
     public static ThrowsClauseAssertion assertThat(ThrowsClause<?> throwsClause) {
         return new ThrowsClauseAssertion(throwsClause);
+    }
+
+    public static JavaAnnotationAssertion assertThatAnnotation(JavaAnnotation<?> annotation) {
+        return new JavaAnnotationAssertion(annotation);
     }
 
     @SuppressWarnings("unchecked") // covariant
@@ -372,9 +380,17 @@ public class Assertions extends org.assertj.core.api.Assertions {
         }
 
         public void isEquivalentTo(Enum<?> enumConstant) {
-            assertThat(actual).as(JavaEnumConstant.class.getSimpleName()).isNotNull();
-            assertThat(actual.getDeclaringClass().getName()).isEqualTo(enumConstant.getDeclaringClass().getName());
-            assertThat(actual.name()).isEqualTo(enumConstant.name());
+            assertThat(actual).as(describePartialAssertion()).isNotNull();
+            assertThat(actual.getDeclaringClass()).as(describePartialAssertion("type")).matches(enumConstant.getDeclaringClass());
+            assertThat(actual.name()).as(describePartialAssertion("name")).isEqualTo(enumConstant.name());
+        }
+
+        private String describePartialAssertion() {
+            return describePartialAssertion("");
+        }
+
+        private String describePartialAssertion(String partialAssertionDescription) {
+            return Joiner.on(": ").skipNulls().join(emptyToNull(descriptionText()), emptyToNull(partialAssertionDescription));
         }
     }
 

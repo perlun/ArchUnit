@@ -9,6 +9,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
+import static com.tngtech.archunit.testutil.Assertions.assertThatAnnotation;
 import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
 
 // FIXME: How classes are resolved depending on the configured ClassResolver is part of the import context.
@@ -46,16 +47,9 @@ public class TransitiveAnnotationsTest {
         JavaAnnotation<?> metaAnnotationWithParameters = someAnnotation.getRawType()
                 .getAnnotationOfType(MetaAnnotationWithParameters.class.getName());
 
-        JavaEnumConstant someEnum = (JavaEnumConstant) metaAnnotationWithParameters.get("someEnum").get();
-        assertThat(someEnum.name()).isEqualTo(SomeEnum.CONSTANT.toString());
-        assertThat(someEnum.getDeclaringClass()).matches(SomeEnum.class);
-
-        JavaAnnotation<?> parameterAnnotation = (JavaAnnotation<?>) metaAnnotationWithParameters
-                .get("parameterAnnotation").get();
-
-        assertThat(parameterAnnotation.getRawType()).matches(ParameterAnnotation.class);
-        JavaClass someAnnotationParameterType = (JavaClass) parameterAnnotation.get("value").get();
-        assertThat(someAnnotationParameterType).matches(SomeAnnotationParameterType.class);
+        assertThatAnnotation(metaAnnotationWithParameters).hasEnumProperty("someEnum", SomeEnum.CONSTANT);
+        assertThatAnnotation(metaAnnotationWithParameters).hasAnnotationProperty("parameterAnnotation", ParameterAnnotation.class)
+                .withClassProperty("value", SomeAnnotationParameterType.class);
     }
 
     private @interface MetaAnnotationWithParameters {
