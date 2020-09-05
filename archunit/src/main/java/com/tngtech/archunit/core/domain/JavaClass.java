@@ -84,6 +84,12 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations<JavaClass>
     private Optional<JavaClass> enclosingClass = Optional.absent();
     private Optional<JavaClass> componentType = Optional.absent();
     private Map<String, JavaAnnotation<JavaClass>> annotations = emptyMap();
+    // FIXME: This should not be a field. To me this looks like a utility variable for one specific method,
+    //        it does not represent state of this object that anyone outside of this one method would ever be interested in.
+    //        Furthermore it would introduce a thread-safety issue if multiple threads would call the method in parallel.
+    //        ArchUnit domain objects are considered immutable after the import process is complete
+    //        (in particular to avoid issues like dealing with thread-safety). If you look closely you will notice that once
+    //        the ClassFileImporter has produced JavaClasses none of state of a JavaClass will ever be changed.
     private Set<JavaAnnotation<JavaClass>> visitedAnnotations = new HashSet<>();
     private Supplier<Set<JavaMethod>> allMethods;
     private Supplier<Set<JavaConstructor>> allConstructors;
@@ -516,6 +522,13 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations<JavaClass>
     @Override
     @PublicAPI(usage = ACCESS)
     public boolean isMetaAnnotatedWith(DescribedPredicate<? super JavaAnnotation<?>> predicate) {
+        // FIXME: It seems to me if there is an issue with recursion, then CanBeAnnotated.Utils.isMetaAnnotatedWith(..)
+        //        should be adjusted, not this method. CanBeAnnotated.Utils.isMetaAnnotatedWith(..) should handle
+        //        all annotation scenarios correctly. Also a test should be added for
+        //        CanBeAnnotated.Utils.isMetaAnnotatedWith(..) then, that reproduces the issue
+        //        And furthermore this change + test should be a separate commit then, because it fixes an existing issue
+        //        with CanBeAnnotated.Utils.isMetaAnnotatedWith(..) and has per se nothing to do with resolving
+        //        annotations transitively ;-)
         Set<JavaAnnotation<JavaClass>> foundAnnotations = new HashSet<>();
         for (JavaAnnotation<JavaClass> annotation : annotations.values()) {
             if (!visitedAnnotations.contains(annotation)) {
