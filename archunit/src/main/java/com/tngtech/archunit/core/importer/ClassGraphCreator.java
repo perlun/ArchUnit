@@ -46,10 +46,10 @@ import com.tngtech.archunit.core.domain.JavaMethodCall;
 import com.tngtech.archunit.core.domain.JavaStaticInitializer;
 import com.tngtech.archunit.core.domain.ThrowsDeclaration;
 import com.tngtech.archunit.core.importer.AccessRecord.FieldAccessRecord;
+import com.tngtech.archunit.core.importer.DomainBuilders.JavaAnnotationBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaConstructorCallBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaFieldAccessBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaMethodCallBuilder;
-import com.tngtech.archunit.core.importer.DomainBuilders.JavaAnnotationBuilder;
 import com.tngtech.archunit.core.importer.resolvers.ClassResolver;
 
 import static com.google.common.collect.Iterables.concat;
@@ -68,6 +68,8 @@ class ClassGraphCreator implements ImportContext {
     private final SetMultimap<JavaCodeUnit, AccessRecord<ConstructorCallTarget>> processedConstructorCallRecords = HashMultimap.create();
     private final Function<JavaClass, Set<String>> superClassStrategy;
     private final Function<JavaClass, Set<String>> interfaceStrategy;
+    // FIXME: There is no need for an "annotationStrategy". The reason we have this for inheritance is that class and interface strategy are used with `resolveInheritance`.
+    //        `resolveAnnotations` on the other hand is always called with this parameter, so it makes no sense to parameterize it.
     private final Function<JavaClass, Set<JavaAnnotationBuilder>> annotationStrategy;
     private final MemberDependenciesByTarget memberDependenciesByTarget = new MemberDependenciesByTarget();
 
