@@ -1,18 +1,25 @@
 package com.tngtech.archunit.core.domain;
 
+import com.tngtech.archunit.core.domain.properties.HasAnnotations;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
+import com.tngtech.java.junit.dataprovider.DataProvider;
+import com.tngtech.java.junit.dataprovider.DataProviderRunner;
+import com.tngtech.java.junit.dataprovider.UseDataProvider;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
+import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
 
 // FIXME: How classes are resolved depending on the configured ClassResolver is part of the import context.
 //        Thus this test should actually go into the importer package, not the domain package.
 //        To match other open PRs I propose the name `ClassFileImporterAnnotationsTest`
 //        and the location next to `ClassFileImporterTest`
+@RunWith(DataProviderRunner.class)
 public class TransitiveAnnotationsTest {
 
     @Test
-    public void meta_annotations_are_imported() {
+    public void meta_annotation_types_are_transitively_imported() {
         JavaClass javaClass = new ClassFileImporter().importClass(BaseClass.class);
         JavaAnnotation<JavaClass> someAnnotation = javaClass.getAnnotationOfType(SomeAnnotation.class.getName());
         JavaAnnotation<JavaClass> someMetaAnnotation = someAnnotation.getRawType()
@@ -23,35 +30,27 @@ public class TransitiveAnnotationsTest {
         assertThat(someMetaMetaAnnotation.getRawType()).matches(SomeMetaMetaAnnotation.class);
     }
 
-    @Test
-    public void parameters_of_meta_annotation_are_imported() {
-        JavaClass javaClass = new ClassFileImporter().importClass(BaseClass.class);
-        JavaAnnotation<JavaClass> someAnnotation = javaClass.getAnnotationOfType(SomeAnnotation.class.getName());
-        JavaAnnotation<JavaClass> metaAnnotationWithParameters = someAnnotation.getRawType()
-                .getAnnotationOfType(MetaAnnotationWithParameters.class.getName());
-
-        assertThatParametersOfMetaAnnotationAreImported(metaAnnotationWithParameters);
+    @DataProvider
+    public static Object[][] elementsAnnotatedWithSomeAnnotation() {
+        return testForEach(
+                new ClassFileImporter().importClass(BaseClass.class),
+                new ClassFileImporter().importClass(ClassWithMetaAnnotatedMember.class).getField("metaAnnotatedMember")
+        );
     }
 
     @Test
-    public void meta_annotations_of_class_members_are_imported() {
-        JavaClass javaClass = new ClassFileImporter().importClass(ClassWithMetaAnnotatedMember.class);
-        JavaField metaAnnotatedMember = javaClass.getField("metaAnnotatedMember");
-        JavaAnnotation<JavaField> someAnnotation = metaAnnotatedMember
+    @UseDataProvider("elementsAnnotatedWithSomeAnnotation")
+    public void parameters_of_meta_annotations_are_transitively_imported(HasAnnotations<?> annotatedWithSomeAnnotation) {
+        JavaAnnotation<?> someAnnotation = annotatedWithSomeAnnotation
                 .getAnnotationOfType(SomeAnnotation.class.getName());
-        JavaAnnotation<JavaClass> metaAnnotationWithParameters = someAnnotation.getRawType()
+        JavaAnnotation<?> metaAnnotationWithParameters = someAnnotation.getRawType()
                 .getAnnotationOfType(MetaAnnotationWithParameters.class.getName());
 
-        assertThatParametersOfMetaAnnotationAreImported(metaAnnotationWithParameters);
-    }
-
-    @SuppressWarnings("unchecked")
-    private void assertThatParametersOfMetaAnnotationAreImported(final JavaAnnotation<JavaClass> metaAnnotationWithParameters) {
         JavaEnumConstant someEnum = (JavaEnumConstant) metaAnnotationWithParameters.get("someEnum").get();
         assertThat(someEnum.name()).isEqualTo(SomeEnum.CONSTANT.toString());
         assertThat(someEnum.getDeclaringClass()).matches(SomeEnum.class);
 
-        JavaAnnotation<JavaClass> parameterAnnotation = (JavaAnnotation<JavaClass>) metaAnnotationWithParameters
+        JavaAnnotation<?> parameterAnnotation = (JavaAnnotation<?>) metaAnnotationWithParameters
                 .get("parameterAnnotation").get();
 
         assertThat(parameterAnnotation.getRawType()).matches(ParameterAnnotation.class);
@@ -81,7 +80,7 @@ public class TransitiveAnnotationsTest {
     }
 
     @SomeAnnotation
-    private @interface BaseClass {
+    private static class BaseClass {
     }
 
     private enum SomeEnum {
