@@ -7,6 +7,10 @@ import static com.tngtech.archunit.core.domain.TestUtils.importClasses;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static org.assertj.core.api.Assertions.assertThat;
 
+// FIXME: How classes are resolved depending on the configured ClassResolver is part of the import context.
+//        Thus this test should actually go into the importer package, not the domain package.
+//        To match other open PRs I propose the name `ClassFileImporterAnnotationsTest`
+//        and the location next to `ClassFileImporterTest`
 public class TransitiveAnnotationsTest {
 
     @Test
