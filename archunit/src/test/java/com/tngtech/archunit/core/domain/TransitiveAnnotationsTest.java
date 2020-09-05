@@ -21,7 +21,7 @@ public class TransitiveAnnotationsTest {
 
     @Test
     public void meta_annotation_types_are_transitively_imported() {
-        JavaClass javaClass = new ClassFileImporter().importClass(BaseClass.class);
+        JavaClass javaClass = new ClassFileImporter().importClass(MetaAnnotatedClass.class);
         JavaAnnotation<JavaClass> someAnnotation = javaClass.getAnnotationOfType(SomeAnnotation.class.getName());
         JavaAnnotation<JavaClass> someMetaAnnotation = someAnnotation.getRawType()
                 .getAnnotationOfType(SomeMetaAnnotation.class.getName());
@@ -34,8 +34,10 @@ public class TransitiveAnnotationsTest {
     @DataProvider
     public static Object[][] elementsAnnotatedWithSomeAnnotation() {
         return testForEach(
-                new ClassFileImporter().importClass(BaseClass.class),
-                new ClassFileImporter().importClass(ClassWithMetaAnnotatedMember.class).getField("metaAnnotatedMember")
+                new ClassFileImporter().importClass(MetaAnnotatedClass.class),
+                new ClassFileImporter().importClass(ClassWithMetaAnnotatedField.class).getField("metaAnnotatedField"),
+                new ClassFileImporter().importClass(ClassWithMetaAnnotatedMethod.class).getMethod("metaAnnotatedMethod"),
+                new ClassFileImporter().importClass(ClassWithMetaAnnotatedConstructor.class).getConstructor()
         );
     }
 
@@ -73,10 +75,6 @@ public class TransitiveAnnotationsTest {
     private @interface SomeAnnotation {
     }
 
-    @SomeAnnotation
-    private static class BaseClass {
-    }
-
     private enum SomeEnum {
         CONSTANT,
         VARIABLE
@@ -89,9 +87,27 @@ public class TransitiveAnnotationsTest {
     private static class SomeAnnotationParameterType {
     }
 
+    @SomeAnnotation
+    private static class MetaAnnotatedClass {
+    }
+
     @SuppressWarnings("unused")
-    private static class ClassWithMetaAnnotatedMember {
+    private static class ClassWithMetaAnnotatedField {
         @SomeAnnotation
-        int metaAnnotatedMember;
+        int metaAnnotatedField;
+    }
+
+    @SuppressWarnings("unused")
+    private static class ClassWithMetaAnnotatedMethod {
+        @SomeAnnotation
+        void metaAnnotatedMethod() {
+        }
+    }
+
+    @SuppressWarnings("unused")
+    private static class ClassWithMetaAnnotatedConstructor {
+        @SomeAnnotation
+        ClassWithMetaAnnotatedConstructor() {
+        }
     }
 }
