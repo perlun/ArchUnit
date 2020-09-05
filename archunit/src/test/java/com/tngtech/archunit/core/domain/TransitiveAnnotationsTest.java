@@ -27,8 +27,10 @@ public class TransitiveAnnotationsTest {
                 .getAnnotationOfType(SomeMetaAnnotation.class.getName());
         JavaAnnotation<JavaClass> someMetaMetaAnnotation = someMetaAnnotation.getRawType()
                 .getAnnotationOfType(SomeMetaMetaAnnotation.class.getName());
+        JavaAnnotation<JavaClass> someMetaMetaMetaAnnotation = someMetaMetaAnnotation.getRawType()
+                .getAnnotationOfType(SomeMetaMetaMetaAnnotationWithParameters.class.getName());
 
-        assertThat(someMetaMetaAnnotation.getRawType()).matches(SomeMetaMetaAnnotation.class);
+        assertThat(someMetaMetaMetaAnnotation.getRawType()).matches(SomeMetaMetaMetaAnnotationWithParameters.class);
     }
 
     @DataProvider
@@ -52,6 +54,17 @@ public class TransitiveAnnotationsTest {
         assertThatAnnotation(metaAnnotationWithParameters).hasEnumProperty("someEnum", SomeEnum.CONSTANT);
         assertThatAnnotation(metaAnnotationWithParameters).hasAnnotationProperty("parameterAnnotation", ParameterAnnotation.class)
                 .withClassProperty("value", SomeAnnotationParameterType.class);
+
+        JavaAnnotation<JavaClass> metaMetaMetaAnnotation = someAnnotation
+                .getRawType().getAnnotationOfType(SomeMetaAnnotation.class.getName())
+                .getRawType().getAnnotationOfType(SomeMetaMetaAnnotation.class.getName())
+                .getRawType().getAnnotationOfType(SomeMetaMetaMetaAnnotationWithParameters.class.getName());
+
+        assertThatAnnotation(metaMetaMetaAnnotation)
+                .hasClassProperty("classParam", SomeMetaMetaMetaAnnotationClassParameter.class)
+                .hasEnumProperty("enumParam", SomeMetaMetaMetaAnnotationEnumParameter.VALUE)
+                .hasAnnotationProperty("annotationParam", SomeMetaMetaMetaParameterAnnotation.class)
+                .withClassProperty("value", SomeMetaMetaMetaParameterAnnotationClassParameter.class);
     }
 
     private @interface MetaAnnotationWithParameters {
@@ -60,6 +73,19 @@ public class TransitiveAnnotationsTest {
         ParameterAnnotation parameterAnnotation();
     }
 
+    private @interface SomeMetaMetaMetaAnnotationWithParameters {
+        Class<?> classParam();
+
+        SomeMetaMetaMetaAnnotationEnumParameter enumParam();
+
+        SomeMetaMetaMetaParameterAnnotation annotationParam();
+    }
+
+    @SomeMetaMetaMetaAnnotationWithParameters(
+            classParam = SomeMetaMetaMetaAnnotationClassParameter.class,
+            enumParam = SomeMetaMetaMetaAnnotationEnumParameter.VALUE,
+            annotationParam = @SomeMetaMetaMetaParameterAnnotation(SomeMetaMetaMetaParameterAnnotationClassParameter.class)
+    )
     private @interface SomeMetaMetaAnnotation {
     }
 
@@ -109,5 +135,19 @@ public class TransitiveAnnotationsTest {
         @SomeAnnotation
         ClassWithMetaAnnotatedConstructor() {
         }
+    }
+
+    private static class SomeMetaMetaMetaAnnotationClassParameter {
+    }
+
+    private enum SomeMetaMetaMetaAnnotationEnumParameter {
+        VALUE
+    }
+
+    private @interface SomeMetaMetaMetaParameterAnnotation {
+        Class<?> value();
+    }
+
+    private static class SomeMetaMetaMetaParameterAnnotationClassParameter {
     }
 }

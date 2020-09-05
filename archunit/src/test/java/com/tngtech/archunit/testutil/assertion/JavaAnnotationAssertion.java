@@ -28,10 +28,14 @@ public class JavaAnnotationAssertion extends AbstractObjectAssert<JavaAnnotation
         super(actual, JavaAnnotationAssertion.class);
     }
 
-    public JavaAnnotationAssertion withClassProperty(String propertyName, Class<?> expectedClass) {
+    public JavaAnnotationAssertion hasClassProperty(String propertyName, Class<?> expectedClass) {
         JavaClass actualClassValue = getPropertyOfType(propertyName, JavaClass.class);
         assertThat(actualClassValue).as("Class<?> @%s.%s()", actual.getRawType().getSimpleName(), propertyName).matches(expectedClass);
         return this;
+    }
+
+    public JavaAnnotationAssertion withClassProperty(String propertyName, Class<?> expectedClass) {
+        return hasClassProperty(propertyName, expectedClass);
     }
 
     public JavaAnnotationAssertion hasEnumProperty(String propertyName, Enum<?> expectedEnumConstant) {
